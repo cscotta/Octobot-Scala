@@ -4,14 +4,9 @@ import org.apache.log4j.Logger
 import java.util.concurrent.ArrayBlockingQueue
 
 // E-mail Imports
-import javax.mail.Message
-import javax.mail.Session
-import javax.mail.Transport
-import javax.mail.MessagingException
-import javax.mail.PasswordAuthentication
-import javax.mail.internet.InternetAddress
-import javax.mail.internet.MimeMessage
 import java.util.Properties
+import javax.mail.{Message, Session, Transport, MessagingException, PasswordAuthentication}
+import javax.mail.internet.{InternetAddress, MimeMessage}
 
 
 // This singleton class provides an internal queue allowing us to asynchronously

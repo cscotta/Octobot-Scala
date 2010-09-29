@@ -1,11 +1,8 @@
 package com.urbanairship.octobot
 
-import org.apache.log4j.Logger
-import com.rabbitmq.client.Channel
 import java.io.IOException
-import com.rabbitmq.client.Connection
-import com.rabbitmq.client.ConnectionFactory
-
+import org.apache.log4j.Logger
+import com.rabbitmq.client.{Channel, Connection, ConnectionFactory}
 
 // This class handles all interfacing with AMQP / RabbitMQ in Octobot.
 // It provides basic connection management and returns task channels

@@ -1,7 +1,7 @@
 package com.urbanairship.octobot
 
-import com.surftools.BeanstalkClientImpl.ClientImpl
 import org.apache.log4j.Logger
+import com.surftools.BeanstalkClientImpl.ClientImpl
 
 // This class handles all interfacing with a Beanstalk in Octobot.
 // It is responsible for connection initialization and management.

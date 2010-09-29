@@ -1,8 +1,6 @@
 package com.urbanairship.octobot
 
-import java.util.ArrayList
-import java.util.HashMap
-import java.util.LinkedList
+import java.util.{ArrayList, HashMap, LinkedList}
 
 object Metrics {
 

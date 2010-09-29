@@ -2,22 +2,18 @@ package com.urbanairship.octobot
 
 // AMQP Support
 import java.io.IOException
-import com.rabbitmq.client.Channel
-import com.rabbitmq.client.Connection
-import com.rabbitmq.client.QueueingConsumer
+import com.rabbitmq.client.{Channel, Connection, QueueingConsumer}
 
 // Beanstalk Support
-import com.surftools.BeanstalkClient.BeanstalkException
-import com.surftools.BeanstalkClient.Job
+import com.surftools.BeanstalkClient.{Job, BeanstalkException}
 import com.surftools.BeanstalkClientImpl.ClientImpl
-import java.io.PrintWriter
-import java.io.StringWriter
+import java.io.{PrintWriter, StringWriter}
 
-import org.json.JSONObject
-import org.json.JSONTokener
+// Redis
+import redis.clients.jedis.{Jedis, JedisPubSub}
+
+import org.json.{JSONObject, JSONTokener}
 import org.apache.log4j.Logger
-import redis.clients.jedis.Jedis
-import redis.clients.jedis.JedisPubSub
 
 
 // This thread opens a streaming connection to a queue, which continually

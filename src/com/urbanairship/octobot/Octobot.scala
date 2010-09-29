@@ -1,13 +1,8 @@
 package com.urbanairship.octobot
 
-import java.util.List
-import java.util.HashMap
-import java.lang.reflect.Method
-import java.lang.reflect.InvocationTargetException
-
-import org.apache.log4j.Logger
-import org.apache.log4j.PropertyConfigurator
-import org.apache.log4j.BasicConfigurator
+import java.util.{List, HashMap}
+import java.lang.reflect.{Method, InvocationTargetException}
+import org.apache.log4j.{Logger, PropertyConfigurator, BasicConfigurator}
 import scala.collection.JavaConversions._
 
 // The fun starts here!

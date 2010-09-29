@@ -1,20 +1,10 @@
 package com.urbanairship.octobot
 
-import java.util.HashMap
-import java.util.LinkedList
-import java.net.Socket
-import java.net.ServerSocket
-
-import java.io.OutputStream
-import java.io.IOException
-
-import java.lang.management.RuntimeMXBean
-import java.lang.management.ManagementFactory
-import java.util.ArrayList
-
-import org.json.JSONObject
-import org.json.JSONTokener
-
+import java.util.{HashMap, LinkedList, ArrayList}
+import java.io.{OutputStream, IOException}
+import java.net.{Socket, ServerSocket}
+import java.lang.management.{RuntimeMXBean, ManagementFactory}
+import org.json.{JSONObject, JSONTokener}
 import org.apache.log4j.Logger
 import scala.collection.JavaConversions._
 
