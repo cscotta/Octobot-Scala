@@ -1,0 +1,33 @@
+<project>
+    <property environment="env" />
+    <path id="classpath">
+        <fileset dir="./lib" includes="**/*.jar" />
+    </path>
+
+    <target name="clean">
+        <delete dir="build" />
+        <delete dir="test/build" />
+        <delete dir="jar" />
+    </target>
+
+    <target name="compile" depends="clean">
+      <mkdir dir="build" />
+      <exec executable="/bin/sh">
+        <arg value="-c" />
+        <arg value="scalac -cp lib/jvyaml.jar:lib/log4j-1.2.16.jar:lib/json.jar:lib/BeanstalkClient-1.0.4-SNAPSHOT.jar:lib/rabbitmq-client.jar:lib/mail-1.4.3.jar:lib/activation-1.1.1.jar:lib/jedis-1.0.0-RC5.jar:lib/scala-library.jar src/com/urbanairship/octobot/*.scala -d build" />
+      </exec>        
+    </target>
+
+    <target name="jar" depends="compile">
+        <mkdir dir="jar" />
+
+        <manifest file="MANIFEST.MF">
+            <attribute name="Built-By" value="${user.name}"/>
+            <attribute name="Main-Class" value="com.urbanairship.octobot.Octobot"/>
+        </manifest>
+
+        <jar destfile="jar/octobot.jar" basedir="build" includes="**/*.class" manifest="MANIFEST.MF">
+            <zipgroupfileset dir="lib" includes="*.jar"/>
+        </jar>
+    </target>
+</project>
