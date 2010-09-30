@@ -1,8 +1,4 @@
 *.class
-jar
-jar/*
-build
-build/*
 nbproject
 MANIFEST.MF
 lib_managed/
