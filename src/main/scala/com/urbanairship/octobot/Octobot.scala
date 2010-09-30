@@ -54,29 +54,29 @@ object Octobot {
       }
     }
 
-      // Start a thread for each queue Octobot is configured to listen on.
-      queues.foreach { queueConf =>
-        // Fetch the number of workers to spawn and their priority.
-        val numWorkers = Settings.getIntFromYML(queueConf.get("workers"), 1)
-        val priority = Settings.getIntFromYML(queueConf.get("priority"), 5)
+    // Start a thread for each queue Octobot is configured to listen on.
+    queues.foreach { queueConf =>
+      // Fetch the number of workers to spawn and their priority.
+      val numWorkers = Settings.getIntFromYML(queueConf.get("workers"), 1)
+      val priority = Settings.getIntFromYML(queueConf.get("priority"), 5)
 
-        val queue = new Queue(queueConf)
+      val queue = new Queue(queueConf)
 
-        // Spawn worker threads for each queue in our configuration.
-        for (i <- 0 until numWorkers) {
-          var consumer = new QueueConsumer(queue)
-          var worker = new Thread(consumer, "Worker")
+      // Spawn worker threads for each queue in our configuration.
+      for (i <- 0 until numWorkers) {
+        var consumer = new QueueConsumer(queue)
+        var worker = new Thread(consumer, "Worker")
 
-          logger.info("Attempting to connect to " + queueConf.get("protocol") +
-            " queue: " + queueConf.get("name") + " with priority " +
-            priority + "/10 " + "(Worker " + (i+1) + "/" + numWorkers + ").")
+        logger.info("Attempting to connect to " + queueConf.get("protocol") +
+          " queue: " + queueConf.get("name") + " with priority " +
+          priority + "/10 " + "(Worker " + (i+1) + "/" + numWorkers + ").")
 
-          worker.setPriority(priority)
-          worker.start()
-        }
+        worker.setPriority(priority)
+        worker.start()
       }
+    }
 
-      logger.info("Octobot ready to rock!")
+    logger.info("Octobot ready to rock!")
   }
 
 

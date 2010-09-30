@@ -28,5 +28,5 @@ class Queue(val queueType: String, val queueName: String, val host: String, val 
     queueType + "/" + queueName + "/" + host + "/" + port + "/" +
       username + "/" + password + "/" + vhost
   }
- 
+
 }

@@ -17,91 +17,96 @@ import scala.collection.JavaConversions._
 
 class Introspector() extends Runnable {
 
-    var server: ServerSocket = null
-    val mx = ManagementFactory.getRuntimeMXBean()
-    var port = Settings.getAsInt("Octobot", "metrics_port")
-    val logger = Logger.getLogger("Introspector")
+  var server: ServerSocket = null
+  val mx = ManagementFactory.getRuntimeMXBean()
+  var port = Settings.getAsInt("Octobot", "metrics_port")
+  val logger = Logger.getLogger("Introspector")
 
-    override def run() {
-        if (port < 1) port = 1228
-        try { server = new ServerSocket(port) }
-        catch {
-          case ex: IOException => {
-            logger.error("Introspector: Unable to listen on port: " + port +
-                    ". Introspector will be unavailable on this instance.")
-            return
-          }
-        }
+  override def run() {
+    if (port < 1) port = 1228
 
-        logger.info("Introspector launched on port: " + port)
-        
-        while (true) {
-          try {
-              val socket = server.accept()
-              val oos = socket.getOutputStream()
-              oos.write(introspect().getBytes())
-              oos.close()
-              socket.close()
-          } catch {
-            case ex: IOException => {
-              logger.error("Error in accepting Introspector connection. "
-                      + "Introspector thread shutting down.", ex)
-              return
-            }
-          }
-        }
+    try {
+      server = new ServerSocket(port)
+    } catch {
+      case ex: IOException => {
+        logger.error("Introspector: Unable to listen on port: " + port +
+                ". Introspector will be unavailable on this instance.")
+      }
     }
 
-    // Assembles metrics for each task and returns a JSON string.
-    // Warnings suppressed are from building the JSON itself.
-    def introspect() : String = {
-        val metrics = new HashMap[String, Object]
-        
-        // Make a quick copy of our runtime metrics data.
-        var instrumentedTasks: ArrayList[String] = null
-        var executionTimes: HashMap[String, LinkedList[Long]] = null
-        var taskSuccesses: HashMap[String, Int] = null
-        var taskFailures: HashMap[String, Int] = null
-        var taskRetries: HashMap[String, Int] = null
+    logger.info("Introspector launched on port: " + port)
 
-        Metrics.metricsLock.synchronized {
-            executionTimes = new HashMap[String, LinkedList[Long]](Metrics.executionTimes)
-            taskSuccesses = new HashMap[String, Int](Metrics.taskSuccesses)
-            taskFailures = new HashMap[String, Int](Metrics.taskFailures)
-            taskRetries = new HashMap[String, Int](Metrics.taskRetries)
-            instrumentedTasks = new ArrayList[String](Metrics.instrumentedTasks)
+    while (true) {
+      try {
+        val socket = server.accept()
+        val oos = socket.getOutputStream()
+        oos.write(introspect().getBytes())
+        oos.close()
+        socket.close()
+      } catch {
+        case ex: IOException => {
+          logger.error("Error in accepting Introspector connection. "
+                  + "Introspector thread shutting down.", ex)
         }
+      }
+    }
+  }
 
-        // Build a JSON object for each task we've instrumented.
-        instrumentedTasks.foreach { taskName =>
-          var task = new JSONObject()
-          task.put("successes", taskSuccesses.get(taskName))
-          task.put("failures", taskFailures.get(taskName))
-          task.put("retries", taskRetries.get(taskName))
-          task.put("average_time", average(executionTimes.get(taskName)))
-          metrics.put("task_" + taskName, task)
-        }
+  // Assembles metrics for each task and returns a JSON string.
+  // Warnings suppressed are from building the JSON itself.
+  def introspect() : String = {
+    val metrics = new HashMap[String, Object]
 
-        metrics.put("tasks_instrumented", instrumentedTasks.size().asInstanceOf[AnyRef])
-        metrics.put("alive_since", (mx.getUptime() / 1000).asInstanceOf[AnyRef])
-        
-        return new JSONObject(metrics).toString
+    // Make a quick copy of our runtime metrics data.
+    var instrumentedTasks: ArrayList[String] = null
+    var executionTimes: HashMap[String, LinkedList[Long]] = null
+    var taskSuccesses: HashMap[String, Int] = null
+    var taskFailures: HashMap[String, Int] = null
+    var taskRetries: HashMap[String, Int] = null
+
+    Metrics.metricsLock.synchronized {
+      executionTimes = new HashMap[String, LinkedList[Long]](Metrics.executionTimes)
+      taskSuccesses = new HashMap[String, Int](Metrics.taskSuccesses)
+      taskFailures = new HashMap[String, Int](Metrics.taskFailures)
+      taskRetries = new HashMap[String, Int](Metrics.taskRetries)
+      instrumentedTasks = new ArrayList[String](Metrics.instrumentedTasks)
     }
 
-    
-    // Calculate and return the mean execution time of our sample.
-    def average(times: LinkedList[Long]) : Float = {
-        if (times == null) return 0.toFloat
-        
-        var timeSum: Long = 0
-        times.foreach(t => timeSum += t)
-
-        // Execution time is reported in nanoseconds, so we divide by 1,000,000
-        // to get to ms. Guard against a divide by zero if no stats are available.
-        val result = if (times.size() > 0)
-            timeSum / times.size() / 1000000f else 0.toFloat
-
-        return result
+    // Build a JSON object for each task we've instrumented.
+    instrumentedTasks.foreach { taskName =>
+      var task = new JSONObject()
+      task.put("successes", taskSuccesses.get(taskName))
+      task.put("failures", taskFailures.get(taskName))
+      task.put("retries", taskRetries.get(taskName))
+      task.put("average_time", average(executionTimes.get(taskName)))
+      metrics.put("task_" + taskName, task)
     }
+
+    metrics.put("tasks_instrumented", instrumentedTasks.size().asInstanceOf[AnyRef])
+    metrics.put("alive_since", (mx.getUptime() / 1000).asInstanceOf[AnyRef])
+
+    new JSONObject(metrics).toString
+  }
+
+
+  // Calculate and return the mean execution time of our sample.
+  def average(times: LinkedList[Long]) : Float = {
+    if (times == null) {
+      0.toFloat
+    }
+
+    var timeSum: Long = 0
+    times.foreach(t => timeSum += t)
+
+    // Execution time is reported in nanoseconds, so we divide by 1,000,000
+    // to get to ms. Guard against a divide by zero if no stats are available.
+    val result = if (times.size() > 0) {
+      timeSum / times.size() / 1000000f
+    } else {
+      0.toFloat
+    }
+
+    result
+  }
 }
 

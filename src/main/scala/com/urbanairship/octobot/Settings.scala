@@ -16,7 +16,6 @@ import org.apache.log4j.Logger
 // Changes to application configuration require a restart to take effect.
 
 object Settings {
-
     val logger = Logger.getLogger("Settings")
     var configuration:HashMap[String, HashMap[String, Any]] = null
 
@@ -25,7 +24,7 @@ object Settings {
     if (settingsFile == null) settingsFile = "/usr/local/octobot/octobot.yml"
 
     try {
-        configuration = YAML.load(new FileReader(settingsFile)).asInstanceOf[HashMap[String, HashMap[String, Any]]];
+      configuration = YAML.load(new FileReader(settingsFile)).asInstanceOf[HashMap[String, HashMap[String, Any]]];
     } catch {
       case ex: Exception => {
         logger.warn("Warning: No valid config at " + settingsFile)
@@ -46,17 +45,17 @@ object Settings {
               key + " from configuration file.")
         }
       }
-      
-      return result
+
+      result
     }
-    
+
     // Fetches a setting from YAML config and converts it to an integer.
     // No integer settings are autodetected, so that logic is not needed here.
     def getAsInt(category: String, key: String) : Int = {
       var result = 0
       var value : Any = null
       var configCategory : HashMap[String, Any] = null
-      
+
       try {
         configCategory = configuration.get(category)
         value = configCategory.get(key)
@@ -67,28 +66,26 @@ object Settings {
               key + " from configuration file.")
         }
       }
-      
-      return result
+
+      result
     }
 
     def getIntFromYML(obj: Any, defaultValue : Int) : Int = {
       var result = defaultValue
 
-      try { 
-        return obj.toString.toInt
+      try {
+        obj.toString.toInt
       } catch {
         case ex: Exception => {
           logger.info("Error reading settings.")
-          return defaultValue
+          defaultValue
         }
       }
     }
 
-
     // Fetches a setting from YAML config and converts it to a boolean.
     // No boolean settings are autodetected, so that logic is not needed here.
     def getAsBoolean(category: String, key: String) : Boolean = {
-      return get(category, key).toBoolean
+      get(category, key).toBoolean
     }
 }
-

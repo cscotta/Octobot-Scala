@@ -19,8 +19,7 @@ object TaskExecutor {
       method = task.getMethod("run", klass)
       taskCache.put(taskName, method)
     }
-    
+
     method.invoke(null, message)
   }
-
 }

@@ -3,10 +3,9 @@ package com.urbanairship.octobot
 import java.util.{ArrayList, HashMap, LinkedList}
 
 object Metrics {
-
     // Keep track of all tasks we've seen executed.
     val instrumentedTasks = new ArrayList[String]()
-    
+
     // Keep track of average task throughput (last 10k runs per task).
     val executionTimes = new HashMap[String, LinkedList[Long]]()
 
@@ -15,13 +14,12 @@ object Metrics {
 
     // Keep track of total failures by task.
     val taskFailures = new HashMap[String, Int]()
-    
+
     // Keep track of total retries by task.
     val taskRetries = new HashMap[String, Int]()
 
     val metricsLock = new Object()
 
-    
     // Updates internal metrics following task execution.
     def update(task: String, time: Long, status: Boolean, retries: Int) {
         metricsLock.synchronized {
@@ -59,7 +57,7 @@ object Metrics {
                 retriesForTask += retries
                 taskRetries.put(task, retriesForTask)
             }
-        }   
+        }
     }
 
 

@@ -13,7 +13,6 @@ import javax.mail.internet.{InternetAddress, MimeMessage}
 // send email notifications rather than processing them in main app loop.
 
 object MailQueue extends Runnable {
-
     val logger = Logger.getLogger("Email Queue")
     val from = Settings.get("Octobot", "email_from")
     val recipient = Settings.get("Octobot", "email_to")
@@ -28,7 +27,6 @@ object MailQueue extends Runnable {
     // number of messages to be held here before the queue blocks (below), we
     // provide ourselves a safety threshold in terms of how many messages could
     // be backed up before we force the delivery of all current waiting messages.
-
     var messages = new ArrayBlockingQueue[String](100)
 
     def put(message: String) {
@@ -46,104 +44,100 @@ object MailQueue extends Runnable {
     // As this thread runs, it consumes messages from the internal queue and
     // delivers each to the recipients configured in the YML file.
     override def run() {
-        
-        if (!validSettings()) {
-            logger.error("Email settings invalid check your configuration.")
-            return
-        }
+      if (!validSettings()) {
+        logger.error("Email settings invalid check your configuration.")
+      }
 
-        while (true) {
-          deliverMessage(messages.take())
-        }
+      while (true) {
+        deliverMessage(messages.take())
+      }
     }
 
     // Delivers email error notificiations.
     def deliverMessage(message: String) {
+      logger.info("Sending error notification to: " + recipient)
 
-        logger.info("Sending error notification to: " + recipient)
+      try {
+        val email = prepareEmail()
 
-        try {
-            val email = prepareEmail()
-            email.setFrom(new InternetAddress(from))
-            email.addRecipient(Message.RecipientType.TO, new InternetAddress(recipient))
+        email.setFrom(new InternetAddress(from))
+        email.addRecipient(Message.RecipientType.TO, new InternetAddress(recipient))
+        email.setSubject("Task Error Notification")
+        email.setText(message)
 
-            email.setSubject("Task Error Notification")
-            email.setText(message)
+        // Send message
+        Transport.send(email)
+        logger.info("Sent error e-mail to " + recipient + ". "
+            + "Message: \n\n" + message)
 
-            // Send message
-            Transport.send(email)
-            logger.info("Sent error e-mail to " + recipient + ". "
-                + "Message: \n\n" + message)
-
-        } catch {
-          case ex: MessagingException => {
-            logger.error("Error delivering error notification.", ex)
-          }
+      } catch {
+        case ex: MessagingException => {
+          logger.error("Error delivering error notification.", ex)
         }
+      }
     }
 
 
     // Prepares a sendable email object based on Octobot's SMTP, SSL, and
     // Authentication configuration.
     def prepareEmail() : MimeMessage = {
-        // Prepare our configuration.
-        val properties = System.getProperties()
-        properties.setProperty("mail.smtp.host", server)
-        properties.put("mail.smtp.auth", "true")
-        var session: Session = null
+      // Prepare our configuration.
+      val properties = System.getProperties()
+      properties.setProperty("mail.smtp.host", server)
+      properties.put("mail.smtp.auth", "true")
 
-        // Configure SSL.
-        if (useSSL) {
-            properties.put("mail.smtp.socketFactory.port", port.asInstanceOf[AnyRef])
-            properties.put("mail.smtp.starttls.enable","true")
-            properties.put("mail.smtp.socketFactory.fallback", "false")
-            properties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory")
-        }
+      var session: Session = null
 
-        // Configure authentication.
-        if (useAuth) {
-            properties.setProperty("mail.smtp.submitter", username)
-            val authenticator = new Authenticator(username, password)
-            session = Session.getInstance(properties, authenticator)
-        } else {
-            session = Session.getDefaultInstance(properties)
-        }
+      // Configure SSL.
+      if (useSSL) {
+        properties.put("mail.smtp.socketFactory.port", port.asInstanceOf[AnyRef])
+        properties.put("mail.smtp.starttls.enable","true")
+        properties.put("mail.smtp.socketFactory.fallback", "false")
+        properties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory")
+      }
 
-        return new MimeMessage(session)
+      // Configure authentication.
+      if (useAuth) {
+        properties.setProperty("mail.smtp.submitter", username)
+        val authenticator = new Authenticator(username, password)
+        session = Session.getInstance(properties, authenticator)
+      } else {
+        session = Session.getDefaultInstance(properties)
+      }
+
+      new MimeMessage(session)
     }
 
 
     // Provides an SMTP authenticator for messages sent with auth.
     class Authenticator(val user: String, val pass: String, var authenticator: Authenticator)
       extends javax.mail.Authenticator {
-        
-        var authentication: PasswordAuthentication = null
 
-        def this(user: String, pass: String) {
-          this(user, pass, new PasswordAuthentication(username, password).asInstanceOf[Authenticator])
-        }
+      var authentication: PasswordAuthentication = null
 
-        override def getPasswordAuthentication() : PasswordAuthentication = {
-          return authentication
-        }
+      def this(user: String, pass: String) {
+        this(user, pass, new PasswordAuthentication(username, password).asInstanceOf[Authenticator])
+      }
+
+      override def getPasswordAuthentication() : PasswordAuthentication = {
+        authentication
+      }
     }
 
     def validSettings() : Boolean = {
-        var result = true
+      var result = true
+      val settings = List(from, recipient, server, port)
 
-        val settings = List(from, recipient, server, port)
+      // Validate base settings.
+      settings.foreach { setting =>
+        if (setting == null) result = false
+      }
 
-        // Validate base settings.
-        settings.foreach { setting => 
-          if (setting == null) result = false
-        }
+      // Validate authentication.
+      if (useAuth && (username == null || password == null)) {
+        result = false
+      }
 
-        // Validate authentication.
-        if (useAuth && (username == null || password == null))
-            result = false
-
-        return result
+      result
     }
-
 }
-
