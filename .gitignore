@@ -5,3 +5,7 @@ build
 build/*
 nbproject
 MANIFEST.MF
+lib_managed/
+target/
+project/boot/
+.DS_Store
