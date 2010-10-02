@@ -1,9 +1,10 @@
-package com.urbanairship.octobot
+package com.urbanairship.octobot.consumers
 
 // Beanstalk Support
-import com.surftools.BeanstalkClient.{Job, BeanstalkException}
-import com.surftools.BeanstalkClientImpl.ClientImpl
 import org.apache.log4j.Logger
+import com.surftools.BeanstalkClientImpl.ClientImpl
+import com.surftools.BeanstalkClient.{Job, BeanstalkException}
+import com.urbanairship.octobot.{Queue, QueueConsumer, Beanstalk}
 
 class BeanstalkConsumer extends Consumer {
 

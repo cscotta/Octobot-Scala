@@ -1,8 +1,9 @@
-package com.urbanairship.octobot
+package com.urbanairship.octobot.consumers
 
 import java.io.IOException
 import org.json.JSONObject
 import org.apache.log4j.Logger
+import com.urbanairship.octobot.{Queue, QueueConsumer, RabbitMQ}
 import com.rabbitmq.client.{Channel, Connection, QueueingConsumer}
 
 class AMQPConsumer extends Consumer {

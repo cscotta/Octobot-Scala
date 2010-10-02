@@ -1,8 +1,9 @@
-package com.urbanairship.octobot
+package com.urbanairship.octobot.consumers
 
 import java.io.IOException
 import org.apache.log4j.Logger
 import redis.clients.jedis.{Jedis, JedisPubSub}
+import com.urbanairship.octobot.{Queue, QueueConsumer}
 
 class RedisConsumer extends Consumer {
 

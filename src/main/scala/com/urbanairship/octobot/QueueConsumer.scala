@@ -3,6 +3,7 @@ package com.urbanairship.octobot
 import java.io.{PrintWriter, StringWriter}
 import org.json.{JSONObject, JSONTokener}
 import org.apache.log4j.Logger
+import com.urbanairship.octobot.consumers._
 
 
 // This thread opens a streaming connection to a queue, which continually
