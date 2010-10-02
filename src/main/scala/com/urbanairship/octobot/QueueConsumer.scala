@@ -1,17 +1,10 @@
 package com.urbanairship.octobot
 
-// AMQP Support
-import java.io.IOException
-import com.rabbitmq.client.{Channel, Connection, QueueingConsumer}
-
-// Beanstalk Support
-import com.surftools.BeanstalkClient.{Job, BeanstalkException}
-import com.surftools.BeanstalkClientImpl.ClientImpl
-import java.io.{PrintWriter, StringWriter}
-
 // Redis
+import java.io.IOException
 import redis.clients.jedis.{Jedis, JedisPubSub}
 
+import java.io.{PrintWriter, StringWriter}
 import org.json.{JSONObject, JSONTokener}
 import org.apache.log4j.Logger
 
@@ -28,50 +21,12 @@ class QueueConsumer(val queue: Queue) extends Runnable {
       if (queue.queueType.equals("amqp")) {
           new AMQPConsumer().consume(queue)
       } else if (queue.queueType.equals("beanstalk")) {
-          consumeFromBeanstalk()
+          new BeanstalkConsumer().consume(queue)
       } else if (queue.queueType.equals("redis")) {
           consumeFromRedis()
       } else {
           logger.error("Invalid queue type specified: " + queue.queueType)
       }
-  }
-
-  // Attempt to register to receive messages from Beanstalk and invoke tasks.
-  def consumeFromBeanstalk() {
-    var beanstalkClient = Beanstalk.getBeanstalkChannel(queue.host, queue.port, queue.queueName)
-    logger.info("Connected to Beanstalk waiting for jobs.")
-
-    while (true) {
-      var job: Job = null
-      try { job = beanstalkClient.reserve(1) }
-      catch {
-        case ex: BeanstalkException => {
-          logger.error("Beanstalk connection error.", ex)
-          beanstalkClient = Beanstalk.getBeanstalkChannel(queue.host,
-                  queue.port, queue.queueName)
-        }
-      }
-
-      if (job != null) {
-        val message = new String(job.getData())
-
-        try {
-          QueueConsumer.invokeTask(message)
-        } catch {
-          case ex: Exception => logger.error("Error handling message.", ex)
-        }
-
-        try {
-          beanstalkClient.delete(job.getJobId())
-        } catch {
-          case ex: BeanstalkException => {
-            logger.error("Error sending message receipt.", ex)
-            beanstalkClient = Beanstalk.getBeanstalkChannel(queue.host,
-                queue.port, queue.queueName)
-          }
-        }
-      }
-    }
   }
 
   def consumeFromRedis() {

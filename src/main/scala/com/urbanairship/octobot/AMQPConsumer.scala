@@ -1,19 +1,9 @@
 package com.urbanairship.octobot
 
-// AMQP Support
 import java.io.IOException
-import com.rabbitmq.client.{Channel, Connection, QueueingConsumer}
-
-// Beanstalk Support
-import com.surftools.BeanstalkClient.{Job, BeanstalkException}
-import com.surftools.BeanstalkClientImpl.ClientImpl
-import java.io.{PrintWriter, StringWriter}
-
-// Redis
-import redis.clients.jedis.{Jedis, JedisPubSub}
-
-import org.json.{JSONObject, JSONTokener}
+import org.json.JSONObject
 import org.apache.log4j.Logger
+import com.rabbitmq.client.{Channel, Connection, QueueingConsumer}
 
 class AMQPConsumer extends Consumer {
 
