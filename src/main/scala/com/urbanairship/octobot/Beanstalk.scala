@@ -33,7 +33,6 @@ object Beanstalk {
       }
     }
 
-    // This code can never be reached, but the compiler wants it.
     client
   }
 }

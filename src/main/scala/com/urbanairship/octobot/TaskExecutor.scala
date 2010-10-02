@@ -6,19 +6,17 @@ import org.json.JSONObject
 
 object TaskExecutor {
   val taskCache = new mutable.HashMap[String, Method]
+  val argClass = new JSONObject().getClass
 
   def execute(taskName: String, message: JSONObject) {
-    var method: Method = null
 
-    if (taskCache.contains(taskName)) {
-      // TODO refactor as getOrElse
-      method = taskCache.get(taskName).get
-    } else {
-      val task = Class.forName(taskName)
-      val klass = new JSONObject().getClass
-
-      method = task.getMethod("run", klass)
-      taskCache.put(taskName, method)
+    val method: Method = {
+      taskCache.getOrElse(taskName, {
+        val task = Class.forName(taskName)
+        val meth = task.getMethod("run", argClass)
+        taskCache.put(taskName, meth)
+        meth
+      })
     }
 
     method.invoke(null, message)

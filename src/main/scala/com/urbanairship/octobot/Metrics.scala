@@ -41,8 +41,8 @@ object Metrics {
       executionTimes.put(task, timeList)
     } else {
       val timeList = executionTimes.get(task)
-
       if (timeList.size() == 10000) timeList.removeLast()
+
       timeList.addFirst(time)
       executionTimes.put(task, timeList)
     }
@@ -55,10 +55,8 @@ object Metrics {
       if (!taskRetries.containsKey(task)) {
         taskRetries.put(task, retries)
       } else {
-        var retriesForTask = taskRetries.get(task)
-
-        retriesForTask += retries
-        taskRetries.put(task, retriesForTask)
+        val retriesForTask = taskRetries.get(task)
+        taskRetries.put(task, retriesForTask + retries)
       }
     }
   }
@@ -70,14 +68,14 @@ object Metrics {
       if (!taskSuccesses.containsKey(task)) {
         taskSuccesses.put(task, 1)
       } else {
-        var success = taskSuccesses.get(task)
+        val success = taskSuccesses.get(task)
         taskSuccesses.put(task, success + 1)
       }
     } else {
       if (!taskFailures.containsKey(task)) {
         taskFailures.put(task, 1)
       } else {
-        var failure = taskFailures.get(task)
+        val failure = taskFailures.get(task)
         taskFailures.put(task, failure + 1)
       }
     }

@@ -20,18 +20,18 @@ object Octobot {
     if (configFile != null && !configFile.equals("")) {
       PropertyConfigurator.configure(configFile)
     } else {
-       BasicConfigurator.configure()
+      BasicConfigurator.configure()
       logger.warn("log4j.configuration not set - logging to stdout.")
     }
 
     // If a startup hook is configured, call it before launching workers.
     val startupHook = Settings.get("Octobot", "startup_hook")
-    if (startupHook != null && !startupHook.equals(""))
+    if (startupHook != null)
       launchStartupHook(startupHook)
 
     // If a shutdown hook is configured, register it.
     val shutdownHook = Settings.get("Octobot", "shutdown_hook")
-    if (shutdownHook != null && !shutdownHook.equals(""))
+    if (shutdownHook != null)
       registerShutdownHook(shutdownHook)
 
     val enableEmailErrors = Settings.getAsBoolean("Octobot", "email_enabled")
@@ -44,13 +44,15 @@ object Octobot {
     new Thread(new Introspector(), "Introspector").start()
 
     logger.info("Launching Workers...")
-    var queues: List[HashMap[String, Any]] = null
-    try {
-        queues = getQueues()
-    } catch {
-      case ex : NullPointerException => {
-        logger.fatal("Error: No valid queues found in Settings. Exiting.")
-        throw new Error("Error: No valid queues found in Settings. Exiting.")
+
+    val queues: List[HashMap[String, Any]] = {
+      try {
+          getQueues()
+      } catch {
+        case ex : NullPointerException => {
+          logger.fatal("Error: No valid queues found in Settings. Exiting.")
+          throw new Error("Error: No valid queues found in Settings. Exiting.")
+        }
       }
     }
 
@@ -64,8 +66,8 @@ object Octobot {
 
       // Spawn worker threads for each queue in our configuration.
       for (i <- 0 until numWorkers) {
-        var consumer = new QueueConsumer(queue)
-        var worker = new Thread(consumer, "Worker")
+        val consumer = new QueueConsumer(queue)
+        val worker = new Thread(consumer, "Worker")
 
         logger.info("Attempting to connect to " + queueConf.get("protocol") +
           " queue: " + queueConf.get("name") + " with priority " +
