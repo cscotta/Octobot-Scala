@@ -7,7 +7,7 @@ import org.json.JSONObject
 object TaskExecutor {
   val taskCache = new mutable.HashMap[String, Method]
   val argClass = new JSONObject().getClass
-
+  
   def execute(taskName: String, message: JSONObject) {
 
     val method: Method = {
@@ -21,4 +21,5 @@ object TaskExecutor {
 
     method.invoke(null, message)
   }
+
 }
