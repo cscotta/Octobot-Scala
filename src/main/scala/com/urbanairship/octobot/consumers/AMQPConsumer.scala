@@ -3,8 +3,8 @@ package com.urbanairship.octobot.consumers
 import java.io.IOException
 import org.json.JSONObject
 import org.apache.log4j.Logger
-import com.urbanairship.octobot.{Queue, QueueConsumer, RabbitMQ}
-import com.rabbitmq.client.{Channel, Connection, QueueingConsumer}
+import com.urbanairship.octobot.{Queue, QueueConsumer}
+import com.rabbitmq.client.{Channel, Connection, ConnectionFactory, QueueingConsumer}
 
 class AMQPConsumer extends Consumer {
 
@@ -42,7 +42,6 @@ class AMQPConsumer extends Consumer {
     }
   }
 
-
   // Opens up a connection to RabbitMQ, retrying every five seconds
   // if the queue server is unavailable.
   def getAMQPChannel(queue: Queue) : Channel = {
@@ -55,7 +54,7 @@ class AMQPConsumer extends Consumer {
       logger.debug("Attempt #" + attempts)
 
       try {
-        connection = new RabbitMQ(queue).getConnection()
+        connection = AMQPConsumer.getConnection(queue)
         channel = connection.createChannel()
         consumer = new QueueingConsumer(channel)
         channel.exchangeDeclare(queue.queueName, "direct", true)
@@ -74,6 +73,19 @@ class AMQPConsumer extends Consumer {
 
     channel
   }
+}
 
+object AMQPConsumer {
+  val logger = Logger.getLogger("RabbitMQ")
 
+  // Returns a new connection to an AMQP queue.
+  def getConnection(queue: Queue): Connection = {
+    val factory = new ConnectionFactory()
+    factory.setHost(queue.host)
+    factory.setPort(queue.port)
+    factory.setUsername(queue.username)
+    factory.setPassword(queue.password)
+    factory.setVirtualHost(queue.vhost)
+    factory.newConnection()
+  }
 }
