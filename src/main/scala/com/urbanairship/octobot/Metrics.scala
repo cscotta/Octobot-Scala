@@ -3,6 +3,7 @@ package com.urbanairship.octobot
 import java.util.{ArrayList, HashMap, LinkedList}
 
 object Metrics {
+
   // Keep track of all tasks we've seen executed.
   val instrumentedTasks = new ArrayList[String]()
 

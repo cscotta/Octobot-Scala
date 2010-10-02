@@ -15,17 +15,12 @@ class QueueConsumer(val queue: Queue) extends Runnable {
 
   // Fire up the appropriate queue listener and begin invoking tasks!.
   override def run() {
-    if (queue.queueType.equals("amqp"))
-      new AMQPConsumer().consume(queue)
-
-    else if (queue.queueType.equals("beanstalk"))
-      new BeanstalkConsumer().consume(queue)
-
-    else if (queue.queueType.equals("redis"))
-      new RedisConsumer().consume(queue)
-
-    else
-      logger.error("Invalid queue type specified: " + queue.queueType)
+    queue.queueType match {
+      case "amqp"       => new AMQPConsumer().consume(queue)
+      case "beanstalk"  => new BeanstalkConsumer().consume(queue)
+      case "redis"      => new RedisConsumer().consume(queue)
+      case _            => logger.error("Invalid queue type: " + queue.queueType)
+    }
   }
 }
 
@@ -55,13 +50,13 @@ object QueueConsumer {
         message = new JSONObject(new JSONTokener(rawMessage))
         taskName = message.get("task").asInstanceOf[String]
 
-        if (message.has("retries")) {
+        if (message.has("retries"))
           retryTimes = message.get("retries").asInstanceOf[Int]
-        }
+
       } catch {
         case ex: Exception => {
           logger.error("Error: Invalid message received: " + rawMessage, ex)
-          executedSuccessfully
+          return executedSuccessfully
         }
       }
 
@@ -94,25 +89,28 @@ object QueueConsumer {
     }
 
     // Deliver an e-mail error notification if enabled.
-    if (enableEmailErrors && !executedSuccessfully) {
-      val email = "Error running task: " + taskName + ".\n\n" +
-        "Attempted executing " + retryCount.toString + " times as specified.\n\n" +
-        "The original input was: \n\n" + rawMessage + "\n\n" +
-        "Here's the error that resulted while running the task:\n\n" +
-        stackToString(lastException)
+    if (enableEmailErrors && !executedSuccessfully)
+      sendEmail(taskName, retryCount, rawMessage, lastException)
 
-      MailQueue.put(email)
-    }
-
-    val finishedAt = System.nanoTime()
-    Metrics.update(taskName, finishedAt - startedAt, executedSuccessfully, retryCount)
-
+    // Update our task execution metrics, and finish up.
+    Metrics.update(taskName, System.nanoTime() - startedAt, executedSuccessfully, retryCount)
     executedSuccessfully
+  }
+
+
+  def sendEmail(taskName: String, retries: Int, message: String, exception: Throwable) {
+    val email = "Error running task: " + taskName + ".\n\n" +
+      "Attempted executing " + retries + " times as specified.\n\n" +
+      "The original input was: \n\n" + message + "\n\n" +
+      "Here's the error that resulted while running the task:\n\n" +
+      stackToString(exception)
+
+    MailQueue.put(email)
   }
 
   // Converts a stacktrace from task invocation to a string for error logging.
   def stackToString(e: Throwable) : String = {
-    if (e == null) "(Null)"
+    if (e == null) return "(Null)"
 
     val stringWriter = new StringWriter()
     val printWriter = new PrintWriter(stringWriter)

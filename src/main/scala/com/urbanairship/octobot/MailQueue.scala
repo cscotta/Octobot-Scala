@@ -27,7 +27,7 @@ object MailQueue extends Runnable {
     // number of messages to be held here before the queue blocks (below), we
     // provide ourselves a safety threshold in terms of how many messages could
     // be backed up before we force the delivery of all current waiting messages.
-    var messages = new ArrayBlockingQueue[String](100)
+    val messages = new ArrayBlockingQueue[String](100)
 
     def put(message: String) {
       messages.put(message)

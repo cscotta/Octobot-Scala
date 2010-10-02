@@ -39,9 +39,9 @@ class Introspector() extends Runnable {
     while (true) {
       try {
         val socket = server.accept()
-        val oos = socket.getOutputStream()
-        oos.write(introspect().getBytes())
-        oos.close()
+        val output = socket.getOutputStream()
+        output.write(introspect().getBytes())
+        output.close()
         socket.close()
       } catch {
         case ex: IOException => {
@@ -92,11 +92,10 @@ class Introspector() extends Runnable {
   // Calculate and return the mean execution time of our sample.
   def average(times: LinkedList[Long]) : Float = {
     if (times == null) {
-      0.toFloat
+      return 0.toFloat
     }
 
-    var timeSum: Long = 0
-    times.foreach(t => timeSum += t)
+    val timeSum = times.reduceLeft(_+_)
 
     // Execution time is reported in nanoseconds, so we divide by 1,000,000
     // to get to ms. Guard against a divide by zero if no stats are available.
