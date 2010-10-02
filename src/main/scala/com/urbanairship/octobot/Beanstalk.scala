@@ -9,31 +9,30 @@ import com.surftools.BeanstalkClientImpl.ClientImpl
 object Beanstalk {
   val logger = Logger.getLogger("Beanstalk")
 
-  def getBeanstalkChannel(host: String, port: Int, tube: String) : ClientImpl = {
-    var attempts = 0
-    var client: ClientImpl = null
+  def getBeanstalkChannel(host: String, port: Int, tube: String, attempts : Int) : ClientImpl = {
+    logger.info("Opening connection to Beanstalk tube: '" + tube + "'. Attempt #" + attempts)
 
-    logger.info("Opening connection to Beanstalk tube: '" + tube + "'...")
-
-    while (true) {
-      attempts += 1
-      logger.debug("Attempt #" + attempts)
-
+    val beanstalkClient: ClientImpl = {
       try {
-          client = new ClientImpl(host, port)
+          val client = new ClientImpl(host, port)
           client.useTube(tube)
           client.watch(tube)
-          logger.info("Connected to Beanstalk")
           client
       } catch {
         case ex: Exception => {
           logger.error("Unable to connect to Beanstalk. Retrying in 5 seconds", ex)
           Thread.sleep(1000 * 5)
+          getBeanstalkChannel(host, port, tube, attempts + 1)
         }
       }
     }
 
-    client
+    beanstalkClient
   }
+
+  def getBeanstalkChannel(host: String, port: Int, tube: String) : ClientImpl = {
+    getBeanstalkChannel(host, port, tube, 1)
+  }
+
 }
 

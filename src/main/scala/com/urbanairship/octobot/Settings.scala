@@ -86,6 +86,7 @@ object Settings {
     // Fetches a setting from YAML config and converts it to a boolean.
     // No boolean settings are autodetected, so that logic is not needed here.
     def getAsBoolean(category: String, key: String) : Boolean = {
-      get(category, key).toBoolean
+      try { get(category, key).toBoolean }
+      catch { case ex: Exception => false }
     }
 }

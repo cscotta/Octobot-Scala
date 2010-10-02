@@ -72,9 +72,7 @@ class QueueConsumer(val queue: Queue) extends Runnable {
 
   // Attempt to register to receive messages from Beanstalk and invoke tasks.
   def consumeFromBeanstalk() {
-    var beanstalkClient = new ClientImpl(queue.host, queue.port)
-    beanstalkClient.watch(queue.queueName)
-    beanstalkClient.useTube(queue.queueName)
+    var beanstalkClient = Beanstalk.getBeanstalkChannel(queue.host, queue.port, queue.queueName)
     logger.info("Connected to Beanstalk waiting for jobs.")
 
     while (true) {
@@ -94,9 +92,7 @@ class QueueConsumer(val queue: Queue) extends Runnable {
         try {
           invokeTask(message)
         } catch {
-          case ex: Exception => {
-            logger.error("Error handling message.", ex)
-          }
+          case ex: Exception => logger.error("Error handling message.", ex)
         }
 
         try {

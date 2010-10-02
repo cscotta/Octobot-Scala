@@ -26,12 +26,12 @@ object Octobot {
 
     // If a startup hook is configured, call it before launching workers.
     val startupHook = Settings.get("Octobot", "startup_hook")
-    if (startupHook != null)
+    if (startupHook != null && startupHook != "")
       launchStartupHook(startupHook)
 
     // If a shutdown hook is configured, register it.
     val shutdownHook = Settings.get("Octobot", "shutdown_hook")
-    if (shutdownHook != null)
+    if (shutdownHook != null && shutdownHook != "")
       registerShutdownHook(shutdownHook)
 
     val enableEmailErrors = Settings.getAsBoolean("Octobot", "email_enabled")
