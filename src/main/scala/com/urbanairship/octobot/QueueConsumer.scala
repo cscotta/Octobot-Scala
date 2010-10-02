@@ -48,49 +48,49 @@ object QueueConsumer {
     var executedSuccessfully = false
 
     while (!executedSuccessfully && retryCount < retryTimes + 1) {
-        if (retryCount > 0)
-            logger.info("Retrying task. Attempt " + retryCount + " of " + retryTimes)
+      if (retryCount > 0)
+        logger.info("Retrying task. Attempt " + retryCount + " of " + retryTimes)
 
-        try {
-          message = new JSONObject(new JSONTokener(rawMessage))
-          taskName = message.get("task").asInstanceOf[String]
+      try {
+        message = new JSONObject(new JSONTokener(rawMessage))
+        taskName = message.get("task").asInstanceOf[String]
 
-          if (message.has("retries")) {
-            retryTimes = message.get("retries").asInstanceOf[Int]
-          }
-        } catch {
-          case ex: Exception => {
-            logger.error("Error: Invalid message received: " + rawMessage, ex)
-            executedSuccessfully
-          }
+        if (message.has("retries")) {
+          retryTimes = message.get("retries").asInstanceOf[Int]
         }
-
-        // Locate the task, then invoke it, supplying our message.
-        // Cache methods after lookup to avoid unnecessary reflection lookups.
-        try {
-          TaskExecutor.execute(taskName, message)
-          executedSuccessfully = true
-        } catch {
-          case ex: ClassNotFoundException => {
-            lastException = ex
-            errorMessage = "Error: Task requested not found: " + taskName
-            logger.error(errorMessage)
-          } case ex: NoClassDefFoundError => {
-            lastException = ex
-            errorMessage = "Error: Task requested not found: " + taskName
-            logger.error(errorMessage, ex)
-          } case ex: NoSuchMethodException => {
-            lastException = ex
-            errorMessage = "Error: Task requested does not have a static run method."
-            logger.error(errorMessage, ex)
-          } case ex: Throwable => {
-            lastException = ex
-            errorMessage = "An error occurred while running the task."
-            logger.error(errorMessage, ex)
-          }
+      } catch {
+        case ex: Exception => {
+          logger.error("Error: Invalid message received: " + rawMessage, ex)
+          executedSuccessfully
         }
+      }
 
-        if (!executedSuccessfully) retryCount += 1
+      // Locate the task, then invoke it, supplying our message.
+      // Cache methods after lookup to avoid unnecessary reflection lookups.
+      try {
+        TaskExecutor.execute(taskName, message)
+        executedSuccessfully = true
+      } catch {
+        case ex: ClassNotFoundException => {
+          lastException = ex
+          errorMessage = "Error: Task requested not found: " + taskName
+          logger.error(errorMessage)
+        } case ex: NoClassDefFoundError => {
+          lastException = ex
+          errorMessage = "Error: Task requested not found: " + taskName
+          logger.error(errorMessage, ex)
+        } case ex: NoSuchMethodException => {
+          lastException = ex
+          errorMessage = "Error: Task requested does not have a static run method."
+          logger.error(errorMessage, ex)
+        } case ex: Throwable => {
+          lastException = ex
+          errorMessage = "An error occurred while running the task."
+          logger.error(errorMessage, ex)
+        }
+      }
+
+      if (!executedSuccessfully) retryCount += 1
     }
 
     // Deliver an e-mail error notification if enabled.
