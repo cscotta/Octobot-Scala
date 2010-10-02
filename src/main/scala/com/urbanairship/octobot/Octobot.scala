@@ -118,8 +118,8 @@ object Octobot {
     logger.info("Registering Shutdown Hook: " + className)
 
     try {
-        val startupHook = Class.forName(className)
-        Runtime.getRuntime().addShutdownHook(new Thread(startupHook.newInstance().asInstanceOf[Runnable]))
+        val shutdownHook = Class.forName(className)
+        Runtime.getRuntime().addShutdownHook(new Thread(shutdownHook.newInstance().asInstanceOf[Runnable]))
     } catch {
       case ex: ClassNotFoundException => {
         logger.error("Could not find class: " + className + " for the " +

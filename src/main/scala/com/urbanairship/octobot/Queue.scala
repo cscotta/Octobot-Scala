@@ -2,6 +2,10 @@ package com.urbanairship.octobot
 
 import java.util.HashMap
 
+// This class ia a plain object encapsulating information about
+// a specific queue's configuration. It can be constructed by
+// specifying the properties as arguments, or via a HashMap.
+
 class Queue(val queueType: String, val queueName: String, val host: String, val port: Int,
             val username: String, val password: String, val vhost: String) {
 

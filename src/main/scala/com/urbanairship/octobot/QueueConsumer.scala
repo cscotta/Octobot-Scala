@@ -24,6 +24,7 @@ class QueueConsumer(val queue: Queue) extends Runnable {
   }
 }
 
+
 object QueueConsumer {
 
   val logger = Logger.getLogger("Queue Consumer")
@@ -42,6 +43,7 @@ object QueueConsumer {
     var lastException: Throwable = null
     var executedSuccessfully = false
 
+    // Attempt to execute a task until it succeeds, or exceeds its retry count.
     while (!executedSuccessfully && retryCount < retryTimes + 1) {
       if (retryCount > 0)
         logger.info("Retrying task. Attempt " + retryCount + " of " + retryTimes)
@@ -60,8 +62,7 @@ object QueueConsumer {
         }
       }
 
-      // Locate the task, then invoke it, supplying our message.
-      // Cache methods after lookup to avoid unnecessary reflection lookups.
+      // Invoke the task with the message received - very carefully.
       try {
         TaskExecutor.execute(taskName, message)
         executedSuccessfully = true
@@ -97,7 +98,7 @@ object QueueConsumer {
     executedSuccessfully
   }
 
-
+  // Sends an e-mail error notification on task failure if enabled.
   def sendEmail(taskName: String, retries: Int, message: String, exception: Throwable) {
     val email = "Error running task: " + taskName + ".\n\n" +
       "Attempted executing " + retries + " times as specified.\n\n" +
