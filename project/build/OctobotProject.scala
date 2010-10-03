@@ -11,11 +11,10 @@ class OctobotProject(info: ProjectInfo) extends DefaultWebProject(info) {
   // dependencies
   val specs = "org.scala-tools.testing" % "specs_2.8.0" % "1.6.5"
   val log4j = "log4j" % "log4j" % "1.2.16"
-  val jsonSimple = "com.googlecode.json-simple" % "json-simple" % "1.1"
-  val json = "org.json" % "json" % "20090211"
   val amqpClient = "com.rabbitmq" % "amqp-client" % "2.1.0"
   val mail = "javax.mail" % "mail" % "1.4.3"
   val jvyaml = "net.java.dev" % "jvyaml" % "0.2.1"
   // beanstalkclient in lib/
+  // scala-json in lib/
   // jedis  in lib/
 }

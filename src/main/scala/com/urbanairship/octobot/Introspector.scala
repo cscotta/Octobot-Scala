@@ -1,10 +1,11 @@
 package com.urbanairship.octobot
 
-import java.util.{HashMap, LinkedList, ArrayList}
+import java.util.{ArrayList, LinkedList}
+import scala.collection.mutable.{HashMap}
 import java.io.{OutputStream, IOException}
 import java.net.{Socket, ServerSocket}
 import java.lang.management.{RuntimeMXBean, ManagementFactory}
-import org.json.{JSONObject, JSONTokener}
+import com.twitter.json._
 import org.apache.log4j.Logger
 import scala.collection.JavaConversions._
 
@@ -65,20 +66,20 @@ class Introspector() extends Runnable {
     var taskRetries: HashMap[String, Int] = null
 
     Metrics.metricsLock.synchronized {
-      executionTimes = new HashMap[String, LinkedList[Long]](Metrics.executionTimes)
-      taskSuccesses = new HashMap[String, Int](Metrics.taskSuccesses)
-      taskFailures = new HashMap[String, Int](Metrics.taskFailures)
-      taskRetries = new HashMap[String, Int](Metrics.taskRetries)
+      executionTimes = Metrics.executionTimes.clone
+      taskSuccesses = Metrics.taskSuccesses.clone
+      taskFailures = Metrics.taskFailures.clone
+      taskRetries = Metrics.taskRetries.clone
       instrumentedTasks = new ArrayList[String](Metrics.instrumentedTasks)
     }
 
     // Build a JSON object for each task we've instrumented.
     instrumentedTasks.foreach { taskName =>
-      val task = new JSONObject()
+      val task = new HashMap[String, Any]
       task.put("successes", taskSuccesses.get(taskName))
       task.put("failures", taskFailures.get(taskName))
       task.put("retries", taskRetries.get(taskName))
-      task.put("average_time", average(executionTimes.get(taskName)))
+      task.put("average_time", average(executionTimes.getOrElse(taskName, null)))
       metrics.put("task_" + taskName, task)
     }
 
@@ -86,7 +87,7 @@ class Introspector() extends Runnable {
     metrics.put("tasks_instrumented", instrumentedTasks.size().asInstanceOf[AnyRef])
     metrics.put("alive_since", (mx.getUptime() / 1000).asInstanceOf[AnyRef])
 
-    new JSONObject(metrics).toString
+    Json.build(metrics).body
   }
 
 

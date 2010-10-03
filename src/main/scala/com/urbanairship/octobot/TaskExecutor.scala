@@ -1,8 +1,8 @@
 package com.urbanairship.octobot
 
-import scala.collection.mutable
+import com.twitter.json._
 import java.lang.reflect.Method
-import org.json.JSONObject
+import scala.collection.mutable.HashMap
 
 // This class is responsible for the actual invocation of a task.
 // Given a task name and a JSON object to be passed onto it, the "execute"
@@ -10,11 +10,11 @@ import org.json.JSONObject
 // then caches the method lookup.
 
 object TaskExecutor {
-  val taskCache = new mutable.HashMap[String, Method]
-  val argClass = new JSONObject().getClass
+  val taskCache = new HashMap[String, Method]
+  val argClass = new HashMap[String, AnyVal].getClass
   
   // Invokes a task identified by class name with a message.
-  def execute(taskName: String, message: JSONObject) {
+  def execute(taskName: String, message: Map[String, AnyVal]) {
 
     val method: Method = {
       taskCache.getOrElse(taskName, {

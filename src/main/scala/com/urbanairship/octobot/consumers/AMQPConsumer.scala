@@ -1,7 +1,6 @@
 package com.urbanairship.octobot.consumers
 
 import java.io.IOException
-import org.json.JSONObject
 import org.apache.log4j.Logger
 import com.urbanairship.octobot.{Queue, QueueConsumer}
 import com.rabbitmq.client.{Channel, Connection, ConnectionFactory, QueueingConsumer}
