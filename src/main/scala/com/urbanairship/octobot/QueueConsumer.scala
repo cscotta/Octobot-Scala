@@ -4,6 +4,8 @@ import java.io.{PrintWriter, StringWriter}
 import com.twitter.json._
 import org.apache.log4j.Logger
 import com.urbanairship.octobot.consumers._
+import scala.collection.JavaConversions._
+
 
 // This thread opens a streaming connection to a queue, which continually
 // pushes messages to Octobot queue workers. The tasks contained within these
@@ -33,7 +35,7 @@ object QueueConsumer {
   // reflection, accounting for non-existent tasks and errors while running.
   def invokeTask(rawMessage: String) : Boolean = {
     var taskName = ""
-    var message: Map[String, AnyVal] = null
+    var message: Map[String, Object] = null
     var retryCount = 0
     var retryTimes = 0
 
@@ -48,7 +50,7 @@ object QueueConsumer {
         logger.info("Retrying task. Attempt " + retryCount + " of " + retryTimes)
 
       try {
-        message = Json.parse(rawMessage).asInstanceOf[Map[String, AnyVal]]
+        message = Json.parse(rawMessage).asInstanceOf[Map[String, Object]]
         taskName = message.get("task").get.toString
 
         if (message.contains("retries"))
